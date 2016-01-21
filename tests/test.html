@@ -10,7 +10,7 @@
 
     window.onload = function() {
         
-        try {
+//        try {
 
         /* first of all set up the web3 object. THis should work in Mist as well */
         if(typeof web3 === 'undefined')
@@ -32,10 +32,12 @@
         document.getElementById( "next" ).innerHTML = web3.toHex(  domain.next_domain )
         document.getElementById( "root_id" ).innerHTML = web3.toHex( domain.root_id )
 
-        document.getElementById( "test_int" ).innerHTML = EID.getID( web3, "test_int" )
+        document.getElementById( "test_int" ).innerHTML = EID.getInt( web3, "test", "test_number" )
+        document.getElementById( "test_text" ).innerHTML = EID.getStr( web3, "test", "test_text" )
+        document.getElementById( "test_ipfs" ).innerHTML = EID.getHash( web3, "test", "ipfs" )
         
         
-        } catch( x ) { alert( x )}
+//        } catch( x ) { alert( x )}
      
     }
     

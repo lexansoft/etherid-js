@@ -10,6 +10,8 @@ module.exports = new function() {
     
     var BigNumber = require( "BigNumber" )
     var utf8 = require( "utf8" )
+    var MH = require('multihashes')
+    var bs58 = require( 'bs58')
     
     this.version = "1.0.0"
     
@@ -85,7 +87,7 @@ module.exports = new function() {
         if( i instanceof BigNumber ) { id = i }
         else if( HEXRE.test( i ) )  { id = new BigNumber( i ) }
         else { //string
-            utf = utf8.encode( i ).slice(0, 32);
+            utf = utf8.encode( id ).slice(0, 32);
             hex = "0x" + this.asciiToHex( utf )    
             id = new BigNumber( hex )
         }
@@ -95,14 +97,66 @@ module.exports = new function() {
         r =  
         {
             value: res[0],
-            next_id: res[1]
+            next_id: res[1],
             prev_id: res[2]
         }
         
         return r;
     }
 
+    this.toAscii = function (hex) { //fixed version
+    // Find termination
+        var str = "";
+        var i = 0, l = hex.length;
+        if (hex.substring(0, 2) === '0x') {
+            i = 2;
+        }
+        for (; i < l; i+=2) {
+            var code = parseInt(hex.substr(i, 2), 16);
+            if( code == 0 ) break;        
+            str += String.fromCharCode(code);
+        }
+
+        return str;
+    };    
+    
+    this.hexToArray = function ( s )
+    {
+        var r =  [];
+
+        if( s.substr( 0, 2 ) == "0x" ) { s = s.substr( 2 ); }
+
+        if( s.length & 1 ) s = "0" + s;
+
+        for (var i = 0; i < s.length; i += 2) {
+            r.push( parseInt( s.substr(i, 2) ,16) );
+        }        
+
+        return r;
+    }
+    
     this.getInt = function ( web3, d, i ) {
+        return this.getId( web3, d, i ).value.toNumber()
+    }
+
+    this.getStr = function ( web3, d, i ) {
+        var val = this.getId( web3, d, i ).value;
+    
+        return utf8.decode( this.toAscii( web3.toHex( val ) ) ) 
+    }
+    
+    this.getHash = function ( web3, d, i ) {
+        var val = this.getId( web3, d, i ).value;
+    
+        h = web3.toHex( val )
+        a = this.hexToArray( h )
+            
+        while( a.length < 32 ) { a = a.splice( 0, 1, 0) } //make it 32 for sure
+        
+        mh =  MH.encode( new Buffer( a ), 18, 32 ) 
+        return bs58.encode( mh )
+    }
+    
     
 }();
 
