@@ -1,0 +1,68 @@
+<html>
+
+<head>
+
+<script src="web3.min.js"></script>     
+<script src="../dist/etherid.js"></script>    
+</head>   
+    
+<script>
+
+    window.onload = function() {
+        
+        try {
+
+        /* first of all set up the web3 object. THis should work in Mist as well */
+        if(typeof web3 === 'undefined')
+            web3 = require('web3');     
+            
+        if( web3.currentProvider == null )
+            web3.setProvider( new web3.providers.HttpProvider( ) );                
+        
+        /* Get the EtherID API object */
+        EID = require( "etherid" )
+        
+        document.getElementById( "version" ).innerHTML = EID.version
+        
+        domain = EID.getDomain( web3, "test" )
+        document.getElementById( "expires" ).innerHTML = domain.expires
+        document.getElementById( "owner" ).innerHTML = web3.toHex( domain.owner )
+        document.getElementById( "price" ).innerHTML = domain.price
+        document.getElementById( "transfer" ).innerHTML = web3.toHex( domain.transfer )
+        document.getElementById( "next" ).innerHTML = web3.toHex(  domain.next_domain )
+        document.getElementById( "root_id" ).innerHTML = web3.toHex( domain.root_id )
+
+        document.getElementById( "test_int" ).innerHTML = EID.getID( web3, "test_int" )
+        
+        
+        } catch( x ) { alert( x )}
+     
+    }
+    
+    
+</script>    
+    
+<body>
+    
+    <h1>Test Page</h1>
+    <p>EtherID API version: <span id="version" ></span></p>
+    <p>Domain 'test' parameters: 
+        <br>Expiration Block: <span id="expires" ></span>
+        <br>Owner: <span id="owner" ></span>
+        <br>Price: <span id="price" ></span>
+        <br>Transfer: <span id="transfer" ></span>
+        <br>Next Domain: <span id="next" ></span>
+        <br>First ID: <span id="root_id" ></span>
+    </p>
+    
+    <h2>Id's</h2>
+    <p>
+        <br>test_int: <span id="test_int" ></span>
+        <br>test_text: <span id="test_text" ></span>
+        <br>ipfs (HASH): <span id="test_ipfs" ></span>
+    </p>
+    
+</body>
+
+
+</html>
