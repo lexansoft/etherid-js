@@ -13,7 +13,7 @@ module.exports = new function() {
     var MH = require('multihashes')
     var bs58 = require( 'bs58')
     
-    this.version = "1.0.0"
+    this.version = "1.0.1"
     
     this.ether_contract = undefined
     
