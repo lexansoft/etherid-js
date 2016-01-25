@@ -8,32 +8,30 @@ module.exports = new function() {
     [{"constant":true,"inputs":[],"name":"root_domain","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":true,"inputs":[{"name":"domain","type":"uint256"}],"name":"getDomain","outputs":[{"name":"owner","type":"address"},{"name":"expires","type":"uint256"},{"name":"price","type":"uint256"},{"name":"transfer","type":"address"},{"name":"next_domain","type":"uint256"},{"name":"root_id","type":"uint256"}],"type":"function"},{"constant":true,"inputs":[],"name":"n_domains","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":true,"inputs":[{"name":"domain","type":"uint256"},{"name":"id","type":"uint256"}],"name":"getId","outputs":[{"name":"v","type":"uint256"},{"name":"next_id","type":"uint256"},{"name":"prev_id","type":"uint256"}],"type":"function"},{"constant":false,"inputs":[{"name":"domain","type":"uint256"},{"name":"expires","type":"uint256"},{"name":"price","type":"uint256"},{"name":"transfer","type":"address"}],"name":"changeDomain","outputs":[],"type":"function"},{"constant":false,"inputs":[{"name":"domain","type":"uint256"},{"name":"name","type":"uint256"},{"name":"value","type":"uint256"}],"name":"changeId","outputs":[],"type":"function"},{"inputs":[],"type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"name":"sender","type":"address"},{"indexed":false,"name":"domain","type":"uint256"},{"indexed":false,"name":"id","type":"uint256"}],"name":"DomainChanged","type":"event"}]
     ;    
     
-    var BigNumber = require( "BigNumber" )
+    var BigNumber = require( "bignumber.js" )
     var utf8 = require( "utf8" )
     var MH = require('multihashes')
     var bs58 = require( 'bs58')
     
-    this.version = "1.0.2"
+    this.version = "1.1.0"
     
     this.ether_contract = undefined
+    
+    this.isBigNumber = function (object) {
+        return object instanceof BigNumber ||
+            (object && object.constructor && object.constructor.name === 'BigNumber');
+    };    
+    
     
     this.getContract = function ( web3 ){
         if( this.ether_contract ) return this.ether_contract;
         this.ether_contract = web3.eth.contract( ETHERID_ABI).at(ETHERID_CONTRACT);
-//        this.ether_contract.DomainChanged().watch( function( error, result ) {
-//
-//            if( !batch_is_active )
-//            {
-//                try 
-//                {
-//                    $("#stat_domains").text( contract.n_domains() );
-//                    updateDomainPage()
-//                }
-//                catch( x ) {}
-//            }
-//        });
         return this.ether_contract;
     }    
+    
+    this.watch = function( web3, func ) {
+        this.getContract( web3 ).DomainChanged().watch( func ) // function( error, result )
+    }
 
     this.asciiToHex = function ( arr ) {
         var str ='';
@@ -41,14 +39,33 @@ module.exports = new function() {
             var n = arr.charCodeAt(i);
             str += (( n < 16) ? "0":"") + n.toString(16);
         }
+        
+        if( str == "" ) str = 0
         return str;
     } 
     
+    this.getNumberOfDomains = function ( web3 ) {
+        return this.getContract( web3 ).n_domains()
+    }
+
+    
+    this.toUTF = function ( web3, v ) {
+        try {
+            return utf8.decode( this.toAscii( web3.toHex( v ) ) )
+        }
+        catch( x ) 
+        { 
+            return ""
+        }
+    }
+
     this.getDomain = function ( web3, name ) {
+        
+        test = web3.toHex( name )
         
         domain = name;
         
-        if( name instanceof BigNumber ) { domain = name }
+        if( this.isBigNumber( name ) ) { domain = name }
         else if( HEXRE.test( name ) )  { domain = new BigNumber( name ) }
         else { //string
             utf = utf8.encode( name ).slice(0, 32);
@@ -57,7 +74,7 @@ module.exports = new function() {
         }
         
         res = this.getContract( web3 ).getDomain( domain );
-
+        
         r =  
         {
             domain: domain,
@@ -66,16 +83,18 @@ module.exports = new function() {
             price: res[2],
             transfer: res[3],
             next_domain: res[4],
-            root_id: res[5]
+            root_id: res[5],
+            
+            domainStr: this.toUTF( web3, domain ),
+            domainHex: web3.toHex( domain )
         }
         
         return r;
     }
 
     this.getId = function ( web3, d, i ) {
-        
         domain = d;
-        if( d instanceof BigNumber ) { domain = d }
+        if( this.isBigNumber( d ) ) { domain = d }
         else if( HEXRE.test( d ) )  { domain = new BigNumber( d ) }
         else { //string
             utf = utf8.encode( d ).slice(0, 32);
@@ -84,7 +103,7 @@ module.exports = new function() {
         }
         
         id = i;
-        if( i instanceof BigNumber ) { id = i }
+        if( this.isBigNumber( i ) ) { id = i }
         else if( HEXRE.test( i ) )  { id = new BigNumber( i ) }
         else { //string
             utf = utf8.encode( id ).slice(0, 32);
@@ -96,7 +115,13 @@ module.exports = new function() {
 
         r =  
         {
+            name: id,
+            nameStr: this.toUTF( web3, id ),
+            nameHex: web3.toHex( id ),
             value: res[0],
+            valueInt: res[0].toNumber(),
+            valueHex: web3.toHex( res[0] ),
+            valueStr: this.toUTF( web3, res[0] ),
             next_id: res[1],
             prev_id: res[2]
         }
@@ -136,13 +161,11 @@ module.exports = new function() {
     }
     
     this.getInt = function ( web3, d, i ) {
-        return this.getId( web3, d, i ).value.toNumber()
+        return this.getId( web3, d, i ).valueInt
     }
 
     this.getStr = function ( web3, d, i ) {
-        var val = this.getId( web3, d, i ).value;
-    
-        return utf8.decode( this.toAscii( web3.toHex( val ) ) ) 
+        return this.getId( web3, d, i ).valueStr;
     }
     
     this.getHash = function ( web3, d, i ) {
@@ -157,6 +180,63 @@ module.exports = new function() {
         return bs58.encode( mh )
     }
     
+    this.getDomainEnum = function( web3 )
+    {
+        e = 
+        {
+            current_domain: this.getContract( web3 ).root_domain(),
+            zero_domain_passed: false,
+            n: 0
+        }
+        return e
+    }
+    
+
+    this.getNextDomain = function( web3, e ) {
+        if( e.zero_domain_passed && e.current_domain.toNumber() == 0 ) return undefined
+        
+        domain = this.getDomain( web3, e.current_domain )
+        
+        if( domain.domain.toNumber() == 0 ) e.zero_domain_passed = true;
+        
+        e.current_domain = domain.next_domain
+        e.n++
+        
+        return domain;
+    }
+
+    this.getIdEnum = function( web3, domain )
+    {
+        
+        d = this.getDomain( web3, domain )
+        
+        e = 
+        {
+            domain: d.domain,
+            current_id: d.root_id,
+            zero_id_passed: false,
+            n: 0
+        }
+        return e
+    }    
+    
+    
+    this.getNextId = function( web3, e ) {
+        
+        id = this.getId( web3, e.domain, e.current_id ) 
+        
+        if( e.current_id.toNumber() == 0 ) 
+        {
+            if( e.zero_id_passed ) return undefined
+            if( id.value.toNumber() == 0 ) return undefined
+            e.zero_id_passed = true
+        }
+
+        e.current_id = id.next_id
+        e.n++
+        
+        return id
+    }    
     
 }();
 

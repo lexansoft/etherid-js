@@ -39,6 +39,14 @@ if( web3.currentProvider == null )
 var etherid = require('etherid')
 ```
 
+
+### Getting total number of registered domains
+
+```javascript
+etherid.getNumberOfDomains( web3 )
+```
+Returns total number of registered domains
+
 ### Reading the domain record
 
 To read the domain record you call:
@@ -80,6 +88,7 @@ The call returns a struct:
 }
 ```
 
+
 ### Reading string ID
 
 ```javascript
@@ -100,6 +109,49 @@ Returns integer ID value
 etherid.getInt( web3, {DOMAIN_NAME}, {ID} )
 ```
 Returns the ID value interpreted as a [multihash](https://github.com/jbenet/multihash) sha2-512. (Same that is used by [ipfs](https://ipfs.io/)
+
+
+### Event handler
+You can setup a handler that will be called everytime someone changes a domain.
+
+```javascript
+etherid.watch( web3, function( error, result ) {
+    document.getElementById( "n_domains" ).innerHTML = EID.getNumberOfDomains( web3 )
+}) 
+```
+
+### Enumerating domains
+You can list all the registered domains by using getDomainEnum and getNextDomain
+
+
+```javascript
+DomainEnumerator = etherid.getDomainEnum( web3 )
+
+d = EID.getNextDomain( web3, DomainEnumerator )
+
+while ( d ) {
+    document.getElementById( "list_domains" ).innerHTML = "domain #:" + DomainEnumerator.n + " " + d.domainStr
+    d = EID.getNextDomain( web3, DomainEnumerator )
+}
+```
+NOTE: The enumerator properly treats the domain with name 0x0 registered in the system. If you implement the loop yourself, do not forget that first 0x0 domain you get is the real domain, and the second is in fact the end of the list.
+
+### Enumerating ID's
+You can list all the domain ID's by using getIdEnum and getNextId
+
+
+```javascript
+IdEnumerator = etherid.getIdEnum( web3, "test" )
+
+id = EID.getNextId( web3, IdEnumerator )
+
+while ( id ) {
+    document.getElementById( "list_domains" ).innerHTML = "ID #:" + Id.n + " " + id.nameStr
+    id = EID.getNextId( web3, IdEnumerator )
+}
+```
+NOTE: The enumerator properly treats the ID with name 0x0 registered in the system. If you implement the loop yourself, do not forget that first 0x0 ID you get might be the real ID, and the second is in fact the end of the list. You should check if the 0x0 ID has value.
+
 
 ## License
 
