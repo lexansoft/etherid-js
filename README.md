@@ -70,6 +70,8 @@ The call returns a struct:
     transfer    // The address for the domain transer
     next_domain // Next domain name in the linked list
     root_id     // First ID if any
+    domainStr   // UTF domain name
+    domainHex   // HEX domain name    
 }
 ```
 
@@ -85,7 +87,15 @@ The call returns a struct:
 
 ```javascript
 {
+    name        // ID Name
+    nameStr     // ID UTF name
+    nameHex     // ID HEX name
+    
     value       // Value
+    valueInt    // Value as Number
+    valueHex    // Value as HEX
+    valueStr    // Value as UTF
+            
     next_id     // Next ID in the linked list
     prev_id     // Previous ID in the linked list
 }
