@@ -28,13 +28,16 @@ The [Web3](https://github.com/ethereum/web3.js) object is needed. This is the pr
 
 ```javascript
 if(typeof web3 === 'undefined')
-    web3 = require('web3');     
+{
+    Web3 = require('web3');
+    web3 = new Web3();            
+}
 
 if( web3.currentProvider == null )
-    web3.setProvider( new web3.providers.HttpProvider( ) );   
+    web3.setProvider( new web3.providers.HttpProvider( ) );    
 ```
 
-### Initialization of teh EtherID object 
+### Initialization of the EtherID object 
 ```javascript
 var etherid = require('etherid')
 ```
