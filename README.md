@@ -7,7 +7,7 @@ Javascript API for EtherID
 ### In Node.js through npm
 
 ```bash
-$ npm install etherid
+$ npm install etherid-js
 ```
 
 
