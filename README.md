@@ -101,29 +101,6 @@ The call returns a struct:
 }
 ```
 
-
-### Reading string ID
-
-```javascript
-etherid.getStr( web3, {DOMAIN_NAME}, {ID} )
-```
-Returns string ID value
-
-### Reading integer ID
-
-```javascript
-etherid.getInt( web3, {DOMAIN_NAME}, {ID} )
-```
-Returns integer ID value
-
-### Reading hash ID
-
-```javascript
-etherid.getInt( web3, {DOMAIN_NAME}, {ID} )
-```
-Returns the ID value interpreted as a [multihash](https://github.com/jbenet/multihash) sha2-512. (Same that is used by [ipfs](https://ipfs.io/)
-
-
 ### Event handler
 You can setup a handler that will be called everytime someone changes a domain.
 

@@ -38886,6 +38886,7 @@ module.exports = {
 
 module.exports = new function() {
     var HEXRE = /^0x[0-9A-Fa-f]+$/
+    var SHA256RE = /^Qm[1-9A-Za-z]{44}$/     
     var ETHERID_CONTRACT = "0x3589d05a1ec4af9f65b0e5554e645707775ee43c"
     var ETHERID_ABI = 
     [{"constant":true,"inputs":[],"name":"root_domain","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":true,"inputs":[{"name":"domain","type":"uint256"}],"name":"getDomain","outputs":[{"name":"owner","type":"address"},{"name":"expires","type":"uint256"},{"name":"price","type":"uint256"},{"name":"transfer","type":"address"},{"name":"next_domain","type":"uint256"},{"name":"root_id","type":"uint256"}],"type":"function"},{"constant":true,"inputs":[],"name":"n_domains","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":true,"inputs":[{"name":"domain","type":"uint256"},{"name":"id","type":"uint256"}],"name":"getId","outputs":[{"name":"v","type":"uint256"},{"name":"next_id","type":"uint256"},{"name":"prev_id","type":"uint256"}],"type":"function"},{"constant":false,"inputs":[{"name":"domain","type":"uint256"},{"name":"expires","type":"uint256"},{"name":"price","type":"uint256"},{"name":"transfer","type":"address"}],"name":"changeDomain","outputs":[],"type":"function"},{"constant":false,"inputs":[{"name":"domain","type":"uint256"},{"name":"name","type":"uint256"},{"name":"value","type":"uint256"}],"name":"changeId","outputs":[],"type":"function"},{"inputs":[],"type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"name":"sender","type":"address"},{"indexed":false,"name":"domain","type":"uint256"},{"indexed":false,"name":"id","type":"uint256"}],"name":"DomainChanged","type":"event"}]
@@ -38896,7 +38897,7 @@ module.exports = new function() {
     var MH = require('multihashes')
     var bs58 = require( 'bs58')
     
-    this.version = "1.1.0"
+    this.version = "1.1.1"
     
     this.ether_contract = undefined
     
@@ -38943,10 +38944,7 @@ module.exports = new function() {
     }
 
     this.getDomain = function ( web3, name, callback ) {
-        
-        test = web3.toHex( name )
-        
-        domain = name;
+        var domain = name;
         
         if( this.isBigNumber( name ) ) { domain = name }
         else if( HEXRE.test( name ) )  { domain = new BigNumber( name ) }
@@ -39004,7 +39002,7 @@ module.exports = new function() {
     }
 
     this.getId = function ( web3, d, i, callback ) {
-        domain = d;
+        var domain = d;
         if( this.isBigNumber( d ) ) { domain = d }
         else if( HEXRE.test( d ) )  { domain = new BigNumber( d ) }
         else { //string
@@ -39013,7 +39011,7 @@ module.exports = new function() {
             domain = new BigNumber( hex )
         }
         
-        id = i;
+        var id = i;
         if( this.isBigNumber( i ) ) { id = i }
         else if( HEXRE.test( i ) )  { id = new BigNumber( i ) }
         else { //string
@@ -39079,6 +39077,81 @@ module.exports = new function() {
         }
     }
 
+    
+    
+    this.changeDomain = function( web3, addr, d, expires, price ,transfer, params, callback )
+    {
+        var domain = d;
+        if( this.isBigNumber( d ) ) { domain = d }
+        else if( HEXRE.test( d ) )  { domain = new BigNumber( d ) }
+        else { //string
+            utf = utf8.encode( d ).slice(0, 32);
+            hex = "0x" + this.asciiToHex( utf )    
+            domain = new BigNumber( hex )
+        } 
+        
+        if( typeof params == "function"){
+            callback = params
+            params = {}
+        }
+        
+        params.from = addr
+        params.value = 0
+        
+        this.getContract( web3 ).changeDomain.sendTransaction( domain, expires, price, transfer, params, callback );    
+    }    
+    
+    this.changeId = function( web3, addr, d, i, v, params, callback ) {
+        var domain = d;
+        if( this.isBigNumber( d ) ) { domain = d }
+        else if( HEXRE.test( d ) )  { domain = new BigNumber( d ) }
+        else { //string
+            utf = utf8.encode( d ).slice(0, 32);
+            hex = "0x" + this.asciiToHex( utf )    
+            domain = new BigNumber( hex )
+        }
+        
+        var id = i;
+        if( this.isBigNumber( i ) ) { id = i }
+        else if( HEXRE.test( i ) )  { id = new BigNumber( i ) }
+        else { //string
+            utf = utf8.encode( id ).slice(0, 32);
+            hex = "0x" + this.asciiToHex( utf )    
+            id = new BigNumber( hex )
+        }
+        
+        var value = ""
+        if( this.isBigNumber( v ) ) { value = v }
+        else if( HEXRE.test( v ) )  { value = new BigNumber( v ) }
+        else if( SHA256RE.test( v ) ) 
+        {
+            var out = bs58.decode( v )
+            ar = MH.decode( new Buffer( out ) )
+            if ( ar.length != 32 ) throw "HASH code should be 32 bytes long"
+            if ( ar.code != 0x12 ) throw "Only sha2-256 hashes are excepted"
+            hex =  "0x" + arrayToHex( ar.digest )
+            value = new BigNumber( hex ) 
+        }
+        else
+        {
+            utf = utf8.encode( v ).slice(0, 32);
+            hex = "0x" + this.asciiToHex( utf ) 
+            value = new BigNumber( hex ) 
+        }
+
+        if( typeof params == "function"){
+            callback = params
+            params = {}
+        }
+        
+        params.from = addr
+        params.value = 0
+        
+        
+        this.getContract( web3 ).changeId.sendTransaction( domain, id, value, params, callback );     
+    }
+
+    
     this.toAscii = function (hex) { //fixed version
     // Find termination
         var str = "";
@@ -39167,6 +39240,7 @@ module.exports = new function() {
         
         return id
     }    
+    
     
 }();
 
