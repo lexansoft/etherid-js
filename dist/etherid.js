@@ -39138,6 +39138,8 @@ module.exports = new function() {
             hex = "0x" + this.asciiToHex( utf ) 
             value = new BigNumber( hex ) 
         }
+        
+        if( v == 0 ) throw "Value cannot be zero"
 
         if( typeof params == "function"){
             callback = params

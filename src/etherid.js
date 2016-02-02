@@ -14,7 +14,7 @@ module.exports = new function() {
     var MH = require('multihashes')
     var bs58 = require( 'bs58')
     
-    this.version = "1.2.0"
+    this.version = "1.2.1"
     
     this.ether_contract = undefined
     
@@ -255,6 +255,8 @@ module.exports = new function() {
             hex = "0x" + this.asciiToHex( utf ) 
             value = new BigNumber( hex ) 
         }
+        
+        if( v == 0 ) throw "Value cannot be zero"
 
         if( typeof params == "function"){
             callback = params
