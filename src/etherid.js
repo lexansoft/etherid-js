@@ -9,7 +9,6 @@ module.exports = new function() {
     [{"constant":true,"inputs":[],"name":"root_domain","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":true,"inputs":[{"name":"domain","type":"uint256"}],"name":"getDomain","outputs":[{"name":"owner","type":"address"},{"name":"expires","type":"uint256"},{"name":"price","type":"uint256"},{"name":"transfer","type":"address"},{"name":"next_domain","type":"uint256"},{"name":"root_id","type":"uint256"}],"type":"function"},{"constant":true,"inputs":[],"name":"n_domains","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":true,"inputs":[{"name":"domain","type":"uint256"},{"name":"id","type":"uint256"}],"name":"getId","outputs":[{"name":"v","type":"uint256"},{"name":"next_id","type":"uint256"},{"name":"prev_id","type":"uint256"}],"type":"function"},{"constant":false,"inputs":[{"name":"domain","type":"uint256"},{"name":"expires","type":"uint256"},{"name":"price","type":"uint256"},{"name":"transfer","type":"address"}],"name":"changeDomain","outputs":[],"type":"function"},{"constant":false,"inputs":[{"name":"domain","type":"uint256"},{"name":"name","type":"uint256"},{"name":"value","type":"uint256"}],"name":"changeId","outputs":[],"type":"function"},{"inputs":[],"type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"name":"sender","type":"address"},{"indexed":false,"name":"domain","type":"uint256"},{"indexed":false,"name":"id","type":"uint256"}],"name":"DomainChanged","type":"event"}]
     ;    
     
-    var BigNumber = require( "bignumber.js" )
     var utf8 = require( "utf8" )
     var MH = require('multihashes')
     var bs58 = require( 'bs58')
@@ -17,12 +16,6 @@ module.exports = new function() {
     this.version = "1.2.1"
     
     this.ether_contract = undefined
-    
-    this.isBigNumber = function (object) {
-        return object instanceof BigNumber ||
-            (object && object.constructor && object.constructor.name === 'BigNumber');
-    };    
-    
     
     this.getContract = function ( web3 ){
         if( this.ether_contract ) return this.ether_contract;
@@ -63,12 +56,12 @@ module.exports = new function() {
     this.getDomain = function ( web3, name, callback ) {
         var domain = name;
         
-        if( this.isBigNumber( name ) ) { domain = name }
-        else if( HEXRE.test( name ) )  { domain = new BigNumber( name ) }
+        if( web3._extend.utils.isBigNumber( name ) ) { domain = name }
+        else if( HEXRE.test( name ) )  { domain = web3.toBigNumber( name ) }
         else { //string
             utf = utf8.encode( name ).slice(0, 32);
             hex = "0x" + this.asciiToHex( utf )    
-            domain = new BigNumber( hex )
+            domain = web3.toBigNumber( hex )
         }
         
         if( !callback ) { // NOT RECOMMENDED !!!
@@ -120,21 +113,21 @@ module.exports = new function() {
 
     this.getId = function ( web3, d, i, callback ) {
         var domain = d;
-        if( this.isBigNumber( d ) ) { domain = d }
-        else if( HEXRE.test( d ) )  { domain = new BigNumber( d ) }
+        if( web3._extend.utils.isBigNumber( d ) ) { domain = d }
+        else if( HEXRE.test( d ) )  { domain = web3.toBigNumber( d ) }
         else { //string
             utf = utf8.encode( d ).slice(0, 32);
             hex = "0x" + this.asciiToHex( utf )    
-            domain = new BigNumber( hex )
+            domain = web3.toBigNumber( hex )
         }
         
         var id = i;
-        if( this.isBigNumber( i ) ) { id = i }
-        else if( HEXRE.test( i ) )  { id = new BigNumber( i ) }
+        if( web3._extend.utils.isBigNumber( i ) ) { id = i }
+        else if( HEXRE.test( i ) )  { id = web3.toBigNumber( i ) }
         else { //string
             utf = utf8.encode( id ).slice(0, 32);
             hex = "0x" + this.asciiToHex( utf )    
-            id = new BigNumber( hex )
+            id = web3.toBigNumber( hex )
         }
         
         if( !callback ) { // NOT RECOMMENDED !!!
@@ -199,12 +192,12 @@ module.exports = new function() {
     this.changeDomain = function( web3, addr, d, expires, price ,transfer, params, callback )
     {
         var domain = d;
-        if( this.isBigNumber( d ) ) { domain = d }
-        else if( HEXRE.test( d ) )  { domain = new BigNumber( d ) }
+        if( web3._extend.utils.isBigNumber( d ) ) { domain = d }
+        else if( HEXRE.test( d ) )  { domain = web3.toBigNumber( d ) }
         else { //string
             utf = utf8.encode( d ).slice(0, 32);
             hex = "0x" + this.asciiToHex( utf )    
-            domain = new BigNumber( hex )
+            domain = web3.toBigNumber( hex )
         } 
         
         if( typeof params == "function"){
@@ -220,26 +213,26 @@ module.exports = new function() {
     
     this.changeId = function( web3, addr, d, i, v, params, callback ) {
         var domain = d;
-        if( this.isBigNumber( d ) ) { domain = d }
-        else if( HEXRE.test( d ) )  { domain = new BigNumber( d ) }
+        if( web3._extend.utils.isBigNumber( d ) ) { domain = d }
+        else if( HEXRE.test( d ) )  { domain = web3.toBigNumber( d ) }
         else { //string
             utf = utf8.encode( d ).slice(0, 32);
             hex = "0x" + this.asciiToHex( utf )    
-            domain = new BigNumber( hex )
+            domain = web3.toBigNumber( hex )
         }
         
         var id = i;
-        if( this.isBigNumber( i ) ) { id = i }
-        else if( HEXRE.test( i ) )  { id = new BigNumber( i ) }
+        if( web3._extend.utils.isBigNumber( i ) ) { id = i }
+        else if( HEXRE.test( i ) )  { id = web3.toBigNumber( i ) }
         else { //string
             utf = utf8.encode( id ).slice(0, 32);
             hex = "0x" + this.asciiToHex( utf )    
-            id = new BigNumber( hex )
+            id = web3.toBigNumber( hex )
         }
         
         var value = ""
-        if( this.isBigNumber( v ) ) { value = v }
-        else if( HEXRE.test( v ) )  { value = new BigNumber( v ) }
+        if( web3._extend.utils.isBigNumber( v ) ) { value = v }
+        else if( HEXRE.test( v ) )  { value = web3.toBigNumber( v ) }
         else if( SHA256RE.test( v ) ) 
         {
             var out = bs58.decode( v )
@@ -247,13 +240,13 @@ module.exports = new function() {
             if ( ar.length != 32 ) throw "HASH code should be 32 bytes long"
             if ( ar.code != 0x12 ) throw "Only sha2-256 hashes are excepted"
             hex =  "0x" + arrayToHex( ar.digest )
-            value = new BigNumber( hex ) 
+            value = web3.toBigNumber( hex ) 
         }
         else
         {
             utf = utf8.encode( v ).slice(0, 32);
             hex = "0x" + this.asciiToHex( utf ) 
-            value = new BigNumber( hex ) 
+            value = web3.toBigNumber( hex ) 
         }
         
         if( v == 0 ) throw "Value cannot be zero"
