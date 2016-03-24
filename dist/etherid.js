@@ -36198,7 +36198,7 @@ module.exports = new function() {
     var MH = require('multihashes')
     var bs58 = require( 'bs58')
     
-    this.version = "1.2.1"
+    this.version = "1.2.2"
     
     this.ether_contract = undefined
     
@@ -36318,13 +36318,13 @@ module.exports = new function() {
         if( !callback ) { // NOT RECOMMENDED !!!
             res = this.getContract( web3 ).getId( domain, id ) 
 
-            h =  web3.toHex( res[0] )
-            a = this.hexToArray( h )
+            var h =  web3.toHex( res[0] )
+            var a = this.hexToArray( h )
             while( a.length < 32 ) { a.splice( 0, 0, 0) } //make it 32 for sure
-            mh =  MH.encode( new Buffer( a ), 18, 32 ) 
-            hash = bs58.encode( mh )        
+            var mh =  MH.encode( new Buffer( a ), 18, 32 ) 
+            var hash = bs58.encode( mh )        
 
-            r =  
+            var r =  
             {
                 name: id,
                 nameStr: this.toUTF( web3, id ),
@@ -36346,13 +36346,13 @@ module.exports = new function() {
             res = this.getContract( web3 ).getId( domain, id, function( error, res ) {
                 if( error ) { callback( error, null ) }
                 else {
-                    h =  web3.toHex( res[0] ) 
-                    a = EtherId.hexToArray( h )
+                    var h =  web3.toHex( res[0] ) 
+                    var a = EtherId.hexToArray( h )
                     while( a.length < 32 ) { a.splice( 0, 0, 0) } //make it 32 for sure
-                    mh =  MH.encode( new Buffer( a ), 18, 32 ) 
-                    hash = bs58.encode( mh )        
+                    var mh =  MH.encode( new Buffer( a ), 18, 32 ) 
+                    var hash = bs58.encode( mh )        
 
-                    r =  
+                    var r =  
                     {
                         name: id,
                         nameStr: EtherId.toUTF( web3, id ),
@@ -36380,8 +36380,8 @@ module.exports = new function() {
         if( web3._extend.utils.isBigNumber( d ) ) { domain = d }
         else if( HEXRE.test( d ) )  { domain = web3.toBigNumber( d ) }
         else { //string
-            utf = utf8.encode( d ).slice(0, 32);
-            hex = "0x" + this.asciiToHex( utf )    
+            var utf = utf8.encode( d ).slice(0, 32);
+            var hex = "0x" + this.asciiToHex( utf )    
             domain = web3.toBigNumber( hex )
         } 
         
@@ -36397,12 +36397,12 @@ module.exports = new function() {
     }    
     
     this.changeId = function( web3, addr, d, i, v, params, callback ) {
-        var domain = d;
+        var domain = d, id, value;
         if( web3._extend.utils.isBigNumber( d ) ) { domain = d }
         else if( HEXRE.test( d ) )  { domain = web3.toBigNumber( d ) }
         else { //string
-            utf = utf8.encode( d ).slice(0, 32);
-            hex = "0x" + this.asciiToHex( utf )    
+            var utf = utf8.encode( d ).slice(0, 32);
+            var hex = "0x" + this.asciiToHex( utf )    
             domain = web3.toBigNumber( hex )
         }
         
@@ -36410,8 +36410,8 @@ module.exports = new function() {
         if( web3._extend.utils.isBigNumber( i ) ) { id = i }
         else if( HEXRE.test( i ) )  { id = web3.toBigNumber( i ) }
         else { //string
-            utf = utf8.encode( id ).slice(0, 32);
-            hex = "0x" + this.asciiToHex( utf )    
+            var utf = utf8.encode( id ).slice(0, 32);
+            var hex = "0x" + this.asciiToHex( utf )    
             id = web3.toBigNumber( hex )
         }
         
@@ -36424,13 +36424,13 @@ module.exports = new function() {
             ar = MH.decode( new Buffer( out ) )
             if ( ar.length != 32 ) throw "HASH code should be 32 bytes long"
             if ( ar.code != 0x12 ) throw "Only sha2-256 hashes are excepted"
-            hex =  "0x" + arrayToHex( ar.digest )
+            var hex =  "0x" + arrayToHex( ar.digest )
             value = web3.toBigNumber( hex ) 
         }
         else
         {
-            utf = utf8.encode( v ).slice(0, 32);
-            hex = "0x" + this.asciiToHex( utf ) 
+            var utf = utf8.encode( v ).slice(0, 32);
+            var hex = "0x" + this.asciiToHex( utf ) 
             value = web3.toBigNumber( hex ) 
         }
         
@@ -36508,9 +36508,9 @@ module.exports = new function() {
     this.getIdEnum = function( web3, domain )
     {
         
-        d = this.getDomain( web3, domain )
+        var d = this.getDomain( web3, domain )
         
-        e = 
+        var e = 
         {
             domain: d.domain,
             current_id: d.root_id,
@@ -36523,7 +36523,7 @@ module.exports = new function() {
     
     this.getNextId = function( web3, e ) {
         
-        id = this.getId( web3, e.domain, e.current_id ) 
+        var id = this.getId( web3, e.domain, e.current_id ) 
         
         if( e.current_id.toNumber() == 0 ) 
         {
