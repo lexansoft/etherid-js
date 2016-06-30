@@ -4,7 +4,8 @@
 module.exports = new function() {
     var HEXRE = /^0x[0-9A-Fa-f]+$/
     var SHA256RE = /^Qm[1-9A-Za-z]{44}$/     
-    var ETHERID_CONTRACT = "0x3589d05a1ec4af9f65b0e5554e645707775ee43c"
+    
+    var ETHERID_CONTRACT = "0xd588b586d61c826a0e87919b3d1a239206d58bf2"
     var ETHERID_ABI = 
     [{"constant":true,"inputs":[],"name":"root_domain","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":true,"inputs":[{"name":"domain","type":"uint256"}],"name":"getDomain","outputs":[{"name":"owner","type":"address"},{"name":"expires","type":"uint256"},{"name":"price","type":"uint256"},{"name":"transfer","type":"address"},{"name":"next_domain","type":"uint256"},{"name":"root_id","type":"uint256"}],"type":"function"},{"constant":true,"inputs":[],"name":"n_domains","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":true,"inputs":[{"name":"domain","type":"uint256"},{"name":"id","type":"uint256"}],"name":"getId","outputs":[{"name":"v","type":"uint256"},{"name":"next_id","type":"uint256"},{"name":"prev_id","type":"uint256"}],"type":"function"},{"constant":false,"inputs":[{"name":"domain","type":"uint256"},{"name":"expires","type":"uint256"},{"name":"price","type":"uint256"},{"name":"transfer","type":"address"}],"name":"changeDomain","outputs":[],"type":"function"},{"constant":false,"inputs":[{"name":"domain","type":"uint256"},{"name":"name","type":"uint256"},{"name":"value","type":"uint256"}],"name":"changeId","outputs":[],"type":"function"},{"inputs":[],"type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"name":"sender","type":"address"},{"indexed":false,"name":"domain","type":"uint256"},{"indexed":false,"name":"id","type":"uint256"}],"name":"DomainChanged","type":"event"}]
     ;    
@@ -13,7 +14,7 @@ module.exports = new function() {
     var MH = require('multihashes')
     var bs58 = require( 'bs58')
     
-    this.version = "1.2.2"
+    this.version = "2.0.0"
     
     this.ether_contract = undefined
     
@@ -205,8 +206,15 @@ module.exports = new function() {
             params = {}
         }
         
+        if( params == undefined ) 
+        {
+            params = {}
+        }
+        
         params.from = addr
         params.value = 0
+        params.gas = 160000
+        
         
         this.getContract( web3 ).changeDomain.sendTransaction( domain, expires, price, transfer, params, callback );    
     }    
@@ -256,9 +264,14 @@ module.exports = new function() {
             params = {}
         }
         
+        if( params == undefined ) 
+        {
+            params = {}
+        }
+        
         params.from = addr
         params.value = 0
-        
+        params.gas = 160000
         
         this.getContract( web3 ).changeId.sendTransaction( domain, id, value, params, callback );     
     }

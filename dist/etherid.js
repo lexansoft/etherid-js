@@ -1,6 +1,11 @@
 require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-// base* encoding
-// Credits to https://github.com/cryptocoinjs/bs58
+// base-x encoding
+// Forked from https://github.com/cryptocoinjs/bs58
+// Originally written by Mike Hearn for BitcoinJ
+// Copyright (c) 2011 Google Inc
+// Ported to JavaScript by Stefan Thomas
+// Merged Buffer refactorings from base58-native by Stephen Pair
+// Copyright (c) 2013 BitPay Inc
 
 module.exports = function base (ALPHABET) {
   var ALPHABET_MAP = {}
@@ -12,72 +17,60 @@ module.exports = function base (ALPHABET) {
     ALPHABET_MAP[ALPHABET.charAt(i)] = i
   }
 
-  function encode (buffer) {
-    if (buffer.length === 0) return ''
+  function encode (source) {
+    if (source.length === 0) return ''
 
-    var i, j
     var digits = [0]
-
-    for (i = 0; i < buffer.length; i++) {
-      for (j = 0; j < digits.length; j++) digits[j] <<= 8
-
-      digits[0] += buffer[i]
-
-      var carry = 0
-      for (j = 0; j < digits.length; ++j) {
-        digits[j] += carry
-
-        carry = (digits[j] / BASE) | 0
-        digits[j] %= BASE
+    for (var i = 0; i < source.length; ++i) {
+      for (var j = 0, carry = source[i]; j < digits.length; ++j) {
+        carry += digits[j] << 8
+        digits[j] = carry % BASE
+        carry = (carry / BASE) | 0
       }
 
-      while (carry) {
+      while (carry > 0) {
         digits.push(carry % BASE)
-
         carry = (carry / BASE) | 0
       }
     }
 
     // deal with leading zeros
-    for (i = 0; buffer[i] === 0 && i < buffer.length - 1; i++) {
+    for (var k = 0; source[k] === 0 && k < source.length - 1; ++k) {
       digits.push(0)
     }
 
-    return digits.reverse().map(function (digit) {
-      return ALPHABET[digit]
-    }).join('')
+    // convert digits to a string
+    for (var ii = 0, jj = digits.length - 1; ii <= jj; ++ii, --jj) {
+      var tmp = ALPHABET[digits[ii]]
+      digits[ii] = ALPHABET[digits[jj]]
+      digits[jj] = tmp
+    }
+
+    return digits.join('')
   }
 
   function decode (string) {
     if (string.length === 0) return []
 
-    var i, j
     var bytes = [0]
+    for (var i = 0; i < string.length; i++) {
+      var value = ALPHABET_MAP[string[i]]
+      if (value === undefined) throw new Error('Non-base' + BASE + ' character')
 
-    for (i = 0; i < string.length; i++) {
-      var c = string[i]
-      if (!(c in ALPHABET_MAP)) throw new Error('Non-base' + BASE + ' character')
-
-      for (j = 0; j < bytes.length; j++) bytes[j] *= BASE
-      bytes[0] += ALPHABET_MAP[c]
-
-      var carry = 0
-      for (j = 0; j < bytes.length; ++j) {
-        bytes[j] += carry
-
-        carry = bytes[j] >> 8
-        bytes[j] &= 0xff
+      for (var j = 0, carry = value; j < bytes.length; ++j) {
+        carry += bytes[j] * BASE
+        bytes[j] = carry & 0xff
+        carry >>= 8
       }
 
-      while (carry) {
+      while (carry > 0) {
         bytes.push(carry & 0xff)
-
         carry >>= 8
       }
     }
 
     // deal with leading zeros
-    for (i = 0; string[i] === LEADER && i < string.length - 1; i++) {
+    for (var k = 0; string[k] === LEADER && k < string.length - 1; ++k) {
       bytes.push(0)
     }
 
@@ -36189,7 +36182,8 @@ module.exports = {
 module.exports = new function() {
     var HEXRE = /^0x[0-9A-Fa-f]+$/
     var SHA256RE = /^Qm[1-9A-Za-z]{44}$/     
-    var ETHERID_CONTRACT = "0x3589d05a1ec4af9f65b0e5554e645707775ee43c"
+    
+    var ETHERID_CONTRACT = "0xd588b586d61c826a0e87919b3d1a239206d58bf2"
     var ETHERID_ABI = 
     [{"constant":true,"inputs":[],"name":"root_domain","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":true,"inputs":[{"name":"domain","type":"uint256"}],"name":"getDomain","outputs":[{"name":"owner","type":"address"},{"name":"expires","type":"uint256"},{"name":"price","type":"uint256"},{"name":"transfer","type":"address"},{"name":"next_domain","type":"uint256"},{"name":"root_id","type":"uint256"}],"type":"function"},{"constant":true,"inputs":[],"name":"n_domains","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":true,"inputs":[{"name":"domain","type":"uint256"},{"name":"id","type":"uint256"}],"name":"getId","outputs":[{"name":"v","type":"uint256"},{"name":"next_id","type":"uint256"},{"name":"prev_id","type":"uint256"}],"type":"function"},{"constant":false,"inputs":[{"name":"domain","type":"uint256"},{"name":"expires","type":"uint256"},{"name":"price","type":"uint256"},{"name":"transfer","type":"address"}],"name":"changeDomain","outputs":[],"type":"function"},{"constant":false,"inputs":[{"name":"domain","type":"uint256"},{"name":"name","type":"uint256"},{"name":"value","type":"uint256"}],"name":"changeId","outputs":[],"type":"function"},{"inputs":[],"type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"name":"sender","type":"address"},{"indexed":false,"name":"domain","type":"uint256"},{"indexed":false,"name":"id","type":"uint256"}],"name":"DomainChanged","type":"event"}]
     ;    
@@ -36198,7 +36192,7 @@ module.exports = new function() {
     var MH = require('multihashes')
     var bs58 = require( 'bs58')
     
-    this.version = "1.2.2"
+    this.version = "2.0.0"
     
     this.ether_contract = undefined
     
@@ -36390,8 +36384,15 @@ module.exports = new function() {
             params = {}
         }
         
+        if( params == undefined ) 
+        {
+            params = {}
+        }
+        
         params.from = addr
         params.value = 0
+        params.gas = 160000
+        
         
         this.getContract( web3 ).changeDomain.sendTransaction( domain, expires, price, transfer, params, callback );    
     }    
@@ -36441,9 +36442,14 @@ module.exports = new function() {
             params = {}
         }
         
+        if( params == undefined ) 
+        {
+            params = {}
+        }
+        
         params.from = addr
         params.value = 0
-        
+        params.gas = 160000
         
         this.getContract( web3 ).changeId.sendTransaction( domain, id, value, params, callback );     
     }
